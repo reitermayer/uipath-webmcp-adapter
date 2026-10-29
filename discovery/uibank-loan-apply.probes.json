@@ -1,0 +1,47 @@
+{
+  "app": "uibank",
+  "form": "loan-apply",
+  "probedAt": "14.10.2026 06:56",
+  "probedBy": "discovery (Claude Opus 5.5 via Claude in Chrome)",
+  "fixedInputs": { "email": "webmcp.test@example.com", "amount": 10000, "term": 5, "income": 60000, "age": 30 },
+  "rulesFound": [
+    {
+      "text": "You must be at least 18 years old for a loan and the loan must not exceed 100k.",
+      "source": "result page after a denied application (/loans/result//0/false)"
+    }
+  ],
+  "probes": [
+    { "id": "P0", "purpose": "baseline - empty form", "input": {}, "expected": "client validation blocks",
+      "actual": { "outcome": "blocked", "url": "/loans/apply", "text": "no message shown" },
+      "signals": ["URL unchanged", "form gets ng-submitted and stays ng-invalid", "only #term is ng-invalid", "a POST /api/quotes/newquote was still sent and answered 400"] },
+    { "id": "P1", "purpose": "happy path", "input": { "age": 30, "amount": 10000 }, "expected": "approved (no stated rule denies it)",
+      "actual": { "outcome": "approved", "url": "/loans/result/6acf0afefcfbea0048e28041/6/true", "rate": 6, "text": "Congrats! You've been approved for a loan with UiBank! With a fantastic rate of: 6% APR. Your new loan ID is: <id>" },
+      "signals": ["URL /loans/result/{loanId}/{rate}/true", "POST /api/quotes/newquote 200"] },
+    { "id": "P2", "purpose": "age just below 18", "input": { "age": 17 }, "expected": "unknown before - first denial probe",
+      "actual": { "outcome": "denied", "url": "/loans/result//0/false", "rate": 0, "text": "Sorry, at this time you have not been approved for a loan. You must be at least 18 years old for a loan and the loan must not exceed 100k." },
+      "signals": ["URL /loans/result//0/false - empty loanId, rate 0"] },
+    { "id": "P3", "purpose": "age at 18", "input": { "age": 18 }, "expected": "not denied by the age rule",
+      "actual": { "outcome": "approved", "url": "/loans/result/6acf0b32fcfbea0048e2804c/6/true", "rate": 6 } },
+    { "id": "P4", "purpose": "amount at 100,000", "input": { "amount": 100000 }, "expected": "not denied by the amount rule (must not exceed 100k)",
+      "actual": { "outcome": "approved", "url": "/loans/result/6acf0b38fcfbea0048e2804d/6/true", "rate": 6 } },
+    { "id": "P5", "purpose": "amount just above 100,000", "input": { "amount": 100001 }, "expected": "denied (exceeds 100k)",
+      "actual": { "outcome": "denied", "url": "/loans/result//0/false", "text": "Sorry, at this time you have not been approved for a loan. You must be at least 18 years old ..." } },
+    { "id": "P6", "purpose": "age far outside a typical range", "input": { "age": 100 }, "expected": "no stated rule - approved if only the stated rules apply",
+      "actual": { "outcome": "approved", "url": "/loans/result/6acf0b4afcfbea0048e2804f/5/true", "rate": 5 },
+      "note": "rate 5% instead of 6% - the rate changes with age, no stated rule explains it" },
+    { "id": "P7", "purpose": "older applicant above the amount limit", "input": { "age": 70, "amount": 100001 }, "expected": "denied (exceeds 100k, the stated rule has no age bound)",
+      "actual": { "outcome": "denied", "url": "/loans/result//0/false", "text": "Sorry, at this time you have not been approved for a loan. You must be at least 18 years old ..." } }
+  ],
+  "notRecorded": {
+    "note": "A first attempt to run P3-P7 in one browser script lost its results when the tool detached mid-script. The page kept running: 5 extra submissions with the same inputs as P3-P7 were sent (results seen only partly: one /6/true, one /5/true). They were repeated one by one above; only P0-P7 count as evidence.",
+    "totalSubmissions": 13
+  },
+  "openQuestions": [
+    "The app states only when it denies. That age >= 18 and amount <= 100,000 is enough for approval is observed (P1, P3, P4, P6) but not stated - income and term were never varied.",
+    "Interest rate varies (6% at age 18/30, 5% at age 100) - no stated rule; a rate rule is unknown.",
+    "Income was fixed at 60,000 - its influence on the decision or rate is untested.",
+    "Term was fixed at 5 - its influence is untested.",
+    "Zero, negative or decimal amounts / ages and empty optional fields (email, amount, income, age) were not submitted - the client does not block them.",
+    "The empty-form submit still sent a backend request (400) although the form was invalid."
+  ]
+}

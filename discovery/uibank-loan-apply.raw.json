@@ -1,0 +1,50 @@
+{
+  "app": "uibank",
+  "form": "loan-apply",
+  "scannedAt": "14.10.2026 06:56",
+  "scannedBy": "discovery (Claude Opus 5.5 via Claude in Chrome)",
+  "page": {
+    "url": "https://uibank.uipath.com/loans/apply",
+    "title": "UiBank-Loan Apply",
+    "heading": "Loan application",
+    "intro": "Fill in the details below in order to proceed with loan application.",
+    "reachedVia": "direct URL",
+    "authRequired": false,
+    "appVersionShown": "UiBank v2.0.0"
+  },
+  "framework": {
+    "name": "angular",
+    "spa": true,
+    "evidence": ["_ngcontent-* attributes on form and inputs", "ngmodel attribute on every field", "ng-untouched / ng-pristine / ng-valid / ng-invalid classes", "form has novalidate, Angular validates"],
+    "input": "native value setter (HTMLInputElement / HTMLSelectElement prototype) then dispatch input, change, blur with bubbles: true",
+    "verified": "all probes filled the form this way and Angular picked up the values"
+  },
+  "form": {
+    "selector": "form.form-container",
+    "classes": "form-box text-left form-container",
+    "id": null,
+    "novalidate": true
+  },
+  "fields": [
+    { "name": "email", "id": "email", "selector": "#email", "control": "input", "type": "email", "label": "Email Address of Requester", "placeholder": "Enter email address", "required": false },
+    { "name": "amount", "id": "amount", "selector": "#amount", "control": "input", "type": "number", "label": "Loan Amount Requested", "placeholder": "Enter loan amount you are looking for", "required": false, "min": null, "max": null },
+    { "name": "term", "id": "term", "selector": "#term", "control": "select", "label": "Loan Term", "required": true,
+      "placeholderOption": { "value": "", "text": "Select your loan term" },
+      "options": [ { "value": "1", "text": "1" }, { "value": "3", "text": "3" }, { "value": "5", "text": "5" }, { "value": "10", "text": "10" } ] },
+    { "name": "income", "id": "income", "selector": "#income", "control": "input", "type": "number", "label": "Current Yearly Income (Before Taxes)", "placeholder": "How much do you make before taxes a year?", "required": false, "min": null, "max": null },
+    { "name": "age", "id": "age", "selector": "#age", "control": "input", "type": "number", "label": "Age", "placeholder": "Please enter your age", "required": false, "min": null, "max": null }
+  ],
+  "submit": { "selector": "#submitButton", "text": "Submit Loan Application", "type": "submit" },
+  "backend": { "method": "POST", "url": "https://uibank-api.azurewebsites.net/api/quotes/newquote" },
+  "oddities": [
+    "Labels for email, amount and term point to ids that do not exist (for=loanEmail, loanAmount, number) - labels are not linked to their inputs; only income and age labels are linked.",
+    "No min/max/pattern attributes on any number field - the form itself does not state any limit.",
+    "Only term is required; email, amount, income and age can be left empty as far as the client validation goes.",
+    "An invalid form shows no validation message - the submit is silently ignored and the form gets ng-submitted + ng-invalid.",
+    "No business rule is stated on the form page or on /loans; the rules appear only on the result page after a denial."
+  ],
+  "otherPages": {
+    "/loans": "Loan home: 'Financing for what ever life throws at you! Use our loan calculator to see if you qualify for a loan with UiBank' - no rules stated.",
+    "/loans/result/{loanId}/{rate}/{approved}": "Result page, see probes"
+  }
+}

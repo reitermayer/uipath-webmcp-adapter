@@ -1,0 +1,30 @@
+{
+  "about": "Central UiPath Test Manager settings for this repo. No secrets here - the login lives in .uipath/ (uip login, ignored by Git). Put your own values here, or in testmanager.local.json (ignored by Git), which overrides this file section by section.",
+  "tenant": {
+    "url": "https://cloud.uipath.com",
+    "organization": "<your-organization>",
+    "name": "<your-tenant>"
+  },
+  "project": {
+    "key": "WEBMCP",
+    "name": "WebMCP Adapter"
+  },
+  "orchestrator": {
+    "folder": "WebMCP-Adapter",
+    "runtime": "Cloud - Serverless Testing",
+    "robot": "ServerlessRobot"
+  },
+  "package": {
+    "app": "uibank",
+    "id": "WebMCPAdapter.UiBank",
+    "author": "Johannes Reitermayer"
+  },
+  "testSet": {
+    "name": "UiBank loan decision (Playwright serverless)",
+    "description": "Playwright tests calling the WebMCP tools, run on a serverless robot. Created by scripts/tm-report.mjs."
+  },
+  "demo": {
+    "ingestionTimeoutSeconds": 120,
+    "runTimeoutSeconds": 900
+  }
+}

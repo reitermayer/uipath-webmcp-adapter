@@ -1,0 +1,133 @@
+{
+  "generatedBy": "scripts/generate-cases.mjs",
+  "source": "manifests/uibank.manifest.json",
+  "app": "uibank",
+  "ruleSet": "loanDecision",
+  "suite": "UiBank loan decision",
+  "tool": "uibank.applyForLoan",
+  "fixedInputs": {
+    "email": "webmcp.test@example.com",
+    "term": 5,
+    "income": 50000
+  },
+  "rules": [
+    {
+      "id": "R1",
+      "text": "Applicants under 18 are denied.",
+      "outcome": "denied"
+    },
+    {
+      "id": "R2",
+      "text": "Applicants of 18 or older asking for more than 100,000 are denied.",
+      "outcome": "denied"
+    },
+    {
+      "id": "R3",
+      "text": "Applicants of 18 or older asking for 100,000 or less are approved.",
+      "outcome": "approved"
+    }
+  ],
+  "boundaryValues": {
+    "age": [
+      17,
+      18
+    ],
+    "amount": [
+      100000,
+      100001
+    ]
+  },
+  "cases": [
+    {
+      "id": "loanDecision-smoke-1",
+      "title": "Typical applicant, age 30, amount 10000 [R3]",
+      "tags": [
+        "@smoke",
+        "@R3"
+      ],
+      "inputs": {
+        "age": 30,
+        "amount": 10000
+      },
+      "expected": {
+        "outcome": "approved"
+      },
+      "rules": [
+        "R3"
+      ]
+    },
+    {
+      "id": "loanDecision-1",
+      "title": "age 17, amount 100000 is denied [R1]",
+      "tags": [
+        "@boundary",
+        "@R1"
+      ],
+      "inputs": {
+        "age": 17,
+        "amount": 100000
+      },
+      "expected": {
+        "outcome": "denied"
+      },
+      "rules": [
+        "R1"
+      ]
+    },
+    {
+      "id": "loanDecision-2",
+      "title": "age 17, amount 100001 is denied [R1]",
+      "tags": [
+        "@boundary",
+        "@R1"
+      ],
+      "inputs": {
+        "age": 17,
+        "amount": 100001
+      },
+      "expected": {
+        "outcome": "denied"
+      },
+      "rules": [
+        "R1"
+      ]
+    },
+    {
+      "id": "loanDecision-3",
+      "title": "age 18, amount 100000 is approved [R3]",
+      "tags": [
+        "@boundary",
+        "@R3"
+      ],
+      "inputs": {
+        "age": 18,
+        "amount": 100000
+      },
+      "expected": {
+        "outcome": "approved"
+      },
+      "rules": [
+        "R3"
+      ]
+    },
+    {
+      "id": "loanDecision-4",
+      "title": "age 18, amount 100001 is denied [R2]",
+      "tags": [
+        "@boundary",
+        "@R2"
+      ],
+      "inputs": {
+        "age": 18,
+        "amount": 100001
+      },
+      "expected": {
+        "outcome": "denied"
+      },
+      "rules": [
+        "R2"
+      ]
+    }
+  ],
+  "gaps": []
+}

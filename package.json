@@ -1,0 +1,24 @@
+{
+  "name": "webmcp-adapter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Inject WebMCP-ready tools into third-party web apps and use them for testing",
+  "scripts": {
+    "tool": "node scripts/run-tool.mjs",
+    "discover:reset": "node scripts/set-aside.mjs discover",
+    "cases": "node scripts/generate-cases.mjs uibank",
+    "cases:reset": "node scripts/set-aside.mjs generate",
+    "tm:sync": "node scripts/tm-sync.mjs uibank.loanDecision",
+    "pack:tm": "node scripts/pack-tm.mjs uibank",
+    "tm:report": "node scripts/tm-report.mjs",
+    "report": "node scripts/show-report.mjs",
+    "test": "playwright test",
+    "test:tm": "TM_REPORT=1 playwright test",
+    "test:visible": "PW_CHANNEL=chrome PW_DEMO_PAUSE=2000 playwright test --headed --workers=1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "playwright": "^1.63.0"
+  }
+}

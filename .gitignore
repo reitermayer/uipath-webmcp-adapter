@@ -1,0 +1,18 @@
+.env
+.venv
+node_modules/
+test-results/
+playwright-report/
+.DS_Store
+dist/
+.claude/settings.local.json
+.uipath/
+~$*
+demo/
+backup/
+CLAUDE.local.md
+
+# Personal / tenant-specific (kept locally, not published)
+docs/STATUS.md
+testmanager.local.json
+tests/cases/*.tm.json

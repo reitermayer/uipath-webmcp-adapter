@@ -1,0 +1,150 @@
+{
+  "manifestVersion": "0.1",
+  "app": "uibank",
+  "title": "UiBank",
+  "baseUrl": "https://uibank.uipath.com",
+  "generatedBy": "discovery (Claude Opus 5.5 via Claude in Chrome)",
+  "generatedAt": "14.10.2026 06:56",
+  "sources": ["discovery/uibank-loan-apply.raw.json", "discovery/uibank-loan-apply.probes.json"],
+
+  "framework": {
+    "name": "angular",
+    "spa": true,
+    "input": "native-setter",
+    "events": ["input", "change", "blur"],
+    "waitForElement": { "intervalMs": 100, "maxTries": 50 }
+  },
+
+  "pages": {
+    "loanApply": {
+      "path": "/loans/apply",
+      "match": "^/loans/apply/?$",
+      "title": "UiBank-Loan Apply",
+      "authRequired": false,
+      "readyWhen": "#email",
+      "forms": ["loanApplication"]
+    },
+    "loanResult": {
+      "path": "/loans/result/{loanId}/{rate}/{approved}",
+      "match": "^/loans/result/([^/]*)/([^/]+)/(true|false)/?$",
+      "title": "UiBank-Loan result",
+      "params": ["loanId", "rate", "approved"]
+    }
+  },
+
+  "forms": {
+    "loanApplication": {
+      "page": "loanApply",
+      "selector": "form.form-container",
+      "submit": { "selector": "#submitButton", "text": "Submit Loan Application" },
+      "fields": {
+        "email": { "selector": "#email", "control": "input", "type": "email", "label": "Email Address of Requester", "required": false },
+        "amount": { "selector": "#amount", "control": "input", "type": "number", "label": "Loan Amount Requested", "required": false },
+        "term": { "selector": "#term", "control": "select", "label": "Loan Term", "required": true, "matchOptionBy": "text", "options": ["1", "3", "5", "10"] },
+        "income": { "selector": "#income", "control": "input", "type": "number", "label": "Current Yearly Income (Before Taxes)", "required": false },
+        "age": { "selector": "#age", "control": "input", "type": "number", "label": "Age", "required": false }
+      },
+      "backend": { "method": "POST", "url": "https://uibank-api.azurewebsites.net/api/quotes/newquote" }
+    }
+  },
+
+  "signals": {
+    "loanApproved": {
+      "page": "loanResult",
+      "urlMatch": "^/loans/result/([^/]+)/([^/]+)/true/?$",
+      "expectText": "You've been approved for a loan with UiBank!",
+      "result": { "outcome": "approved" },
+      "extract": { "loanId": { "urlGroup": 1 }, "rate": { "urlGroup": 2, "type": "number" } }
+    },
+    "loanDenied": {
+      "page": "loanResult",
+      "urlMatch": "^/loans/result/([^/]*)/([^/]+)/false/?$",
+      "expectText": "Sorry, at this time you have not been approved for a loan.",
+      "result": { "outcome": "denied", "loanId": null },
+      "reason": "You must be at least 18 years old for a loan and the loan must not exceed 100k."
+    },
+    "formBlocked": {
+      "page": "loanApply",
+      "formInvalid": "loanApplication",
+      "description": "Angular validation stops the submit (term not selected): no message, URL stays /loans/apply, form gets ng-submitted and stays ng-invalid.",
+      "result": { "outcome": "blocked" }
+    }
+  },
+
+  "tools": {
+    "uibank.applyForLoan": {
+      "description": "Fill and submit the UiBank loan application and return the decision (approved with loan ID and rate, denied, or blocked).",
+      "kind": "write",
+      "confirm": true,
+      "page": "loanApply",
+      "navigateIfNeeded": "/loans/apply",
+      "form": "loanApplication",
+      "input": {
+        "type": "object",
+        "required": ["email", "amount", "term", "income", "age"],
+        "properties": {
+          "email": { "type": "string", "format": "email", "description": "Email address of the requester" },
+          "amount": { "type": "number", "minimum": 0, "description": "Loan amount requested" },
+          "term": { "type": "string", "enum": ["1", "3", "5", "10"], "description": "Loan term (option text)" },
+          "income": { "type": "number", "minimum": 0, "description": "Current yearly income before taxes" },
+          "age": { "type": "number", "minimum": 0, "description": "Age of the applicant" }
+        }
+      },
+      "steps": [
+        { "fill": "loanApplication" },
+        { "click": "#submitButton" },
+        { "waitFor": ["loanApproved", "loanDenied", "formBlocked"], "timeoutMs": 10000 }
+      ],
+      "output": {
+        "type": "object",
+        "properties": {
+          "outcome": { "type": "string", "enum": ["approved", "denied", "blocked"] },
+          "loanId": { "type": ["string", "null"] },
+          "rate": { "type": "number" }
+        }
+      }
+    },
+    "uibank.readLoanResult": {
+      "description": "Read the loan decision from the result page.",
+      "kind": "read",
+      "confirm": false,
+      "page": "loanResult",
+      "steps": [{ "waitFor": ["loanApproved", "loanDenied"], "timeoutMs": 3000 }],
+      "output": { "type": "object" }
+    }
+  },
+
+  "businessRules": {
+    "loanDecision": {
+      "suite": "UiBank loan decision",
+      "tool": "uibank.applyForLoan",
+      "fixedInputs": { "email": "webmcp.test@example.com", "amount": 10000, "term": "5", "income": 60000, "age": 30 },
+      "rules": [
+        { "id": "R1", "text": "Applicants under 18 are denied.", "when": { "age": { "lt": 18 } }, "outcome": "denied" },
+        { "id": "R2", "text": "Loans above 100,000 are denied.", "when": { "amount": { "gt": 100000 } }, "outcome": "denied" }
+      ],
+      "smoke": [
+        { "title": "Typical application is approved", "inputs": { "age": 30, "amount": 10000 }, "outcome": "approved" }
+      ],
+      "documented": [
+        { "rule": "You must be at least 18 years old for a loan and the loan must not exceed 100k.", "outcome": "denied", "source": "result page after a denied application (/loans/result//0/false)" }
+      ],
+      "observed": [
+        { "age": 30, "amount": 10000, "outcome": "approved", "rate": 6, "probe": "P1" },
+        { "age": 17, "outcome": "denied", "matchesDocs": true, "probe": "P2" },
+        { "age": 18, "outcome": "approved", "rate": 6, "matchesDocs": true, "probe": "P3" },
+        { "amount": 100000, "outcome": "approved", "rate": 6, "matchesDocs": true, "probe": "P4" },
+        { "amount": 100001, "outcome": "denied", "matchesDocs": true, "probe": "P5" },
+        { "age": 100, "outcome": "approved", "rate": 5, "probe": "P6" },
+        { "age": 70, "amount": 100001, "outcome": "denied", "matchesDocs": true, "probe": "P7" }
+      ],
+      "openQuestions": [
+        "Approval is not stated as a rule: the app only says when it denies. Age >= 18 with amount <= 100,000 was approved in every probe (P1, P3, P4, P6), but income and term were fixed - Generate will list these combinations as gaps.",
+        "Interest rate varies with age (6% at 18 and 30, 5% at 100) - no stated rule.",
+        "Influence of income (fixed 60,000) and term (fixed 5) on decision and rate is untested.",
+        "Zero, negative or decimal values and empty optional fields are not blocked by the client and were not submitted.",
+        "An empty-form submit is blocked in the UI but still sends POST /api/quotes/newquote (400)."
+      ]
+    }
+  }
+}
