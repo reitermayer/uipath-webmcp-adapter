@@ -289,3 +289,7 @@ The following components are build-time, discovery, and governance tools that li
 - **ParaBank Target**: Deploy ParaBank locally via Docker, run the discovery phase, and produce `manifests/parabank.manifest.json` using the generic runtime without code changes (testing full multi-page postback support via the fire-and-poll bridge).
 - **Runtime Visual Cleanup**: Automatically clear the floating visual banner on in-page navigation (e.g., reset state when clicking "Apply For Another Loan").
 - **UiPath Robot Integration**: Create standalone `Inject Js Script` snippets in [uipath/](uipath) wrapping `dist/webmcp-<app>.js` for Studio and Robot execution.
+
+## License
+
+MIT - see [LICENSE](LICENSE).
